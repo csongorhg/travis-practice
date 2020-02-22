@@ -36,11 +36,21 @@ const void Encoder::parseJson()
 
     QJsonParseError errorPtr;
     QJsonDocument doc = QJsonDocument::fromJson(data, &errorPtr);
-    if (doc.isNull()) {
+    if (errorPtr.error != QJsonParseError::NoError) {
         throw JsonParseException();
     }
 
     _jsonValid = true;
+
+    QJsonObject root = doc.object();
+
+    for (QJsonObject::const_iterator it = root.begin(); it != root.end(); ++it)
+    {
+        if (it.key().size() > 1) {
+            throw JsonParseException();
+        } 
+        _dictionary.insert(it.key().at(0), it.value().toString());
+    }
 }
 
 bool Encoder::isPathValid() 

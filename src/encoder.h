@@ -1,6 +1,11 @@
 #include <QString>
 #include <QFileInfo>
 #include <QJsonParseError>
+#include <QChar>
+#include <QMap>
+#include <QVariant>
+#include <QDebug>
+#include <QJsonObject>
 
 class InvalidPathException: public std::exception
 {
@@ -27,6 +32,8 @@ class Encoder
     QString _path;
     bool _pathValid = false;
     bool _jsonValid = false;
+
+    QMap<QChar, QString> _dictionary;
  
   public:
     static Encoder* getInstance();
