@@ -23,6 +23,14 @@ class JsonParseException: public std::exception
   }
 };
 
+class NonExistingPairException: public std::exception
+{
+  virtual const char* what() const throw()
+  {
+    return "ERROR: Key is not present in the dictionary.";
+  }
+};
+
 class Encoder
 {
   private:
@@ -30,18 +38,26 @@ class Encoder
     Encoder();
 
     QString _path;
+    QString _command;
+    QString _commandResult;
+    QString _stringToTranslate;
+    QString _translatedString;
     bool _pathValid = false;
     bool _jsonValid = false;
 
     QMap<QChar, QString> _dictionary;
- 
+
   public:
     static Encoder* getInstance();
     
     const void setPath(const QString path);
+    const void setCommand(const QString command);
     const void validatePath();
     const void parseJson();
+    const void executeCommand();
+    const void translateString(bool fromEncode);
 
-    bool isPathValid();
-    bool isJsonValid();
+    bool isPathValid() const;
+    bool isJsonValid() const;
+    const QString getTranslatedString() const;
 };

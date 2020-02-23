@@ -9,13 +9,14 @@ int main(int argc, char* argv[])
     
     Encoder* encoder = Encoder::getInstance();
     QTextStream stream(stdin); 
-    QString path;
+    QString userInput;
     
     while (!(encoder->isJsonValid() && encoder->isPathValid()))
     {
-        path = stream.readLine();
-        encoder->setPath(path);
+        userInput = stream.readLine();
+        encoder->setPath(userInput);
 
+        // Read dictionary
         try
         {
             // Validate path
@@ -29,6 +30,21 @@ int main(int argc, char* argv[])
             qInfo() << ex.what();
             continue;
         }
+
+        // Handle user commands
+        userInput = stream.readLine();
+        encoder->setCommand(userInput);
+
+        try
+        {
+            encoder->executeCommand();
+            qInfo() << encoder->getTranslatedString();
+        }
+        catch(const std::exception& ex)
+        {
+            qInfo() << ex.what();
+        }
+        
     }   
 
     app.exit();
