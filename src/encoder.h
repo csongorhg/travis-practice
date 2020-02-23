@@ -6,6 +6,8 @@
 #include <QVariant>
 #include <QDebug>
 #include <QJsonObject>
+#include <QTextCodec>
+#include <QFile>
 
 class InvalidPathException: public std::exception
 {
@@ -40,7 +42,6 @@ class Encoder
     QString _path;
     QString _command;
     QString _commandResult;
-    QString _stringToTranslate;
     QString _translatedString;
     bool _pathValid = false;
     bool _jsonValid = false;
@@ -55,7 +56,8 @@ class Encoder
     const void validatePath();
     const void parseJson();
     const void executeCommand();
-    const void translateString(bool fromEncode);
+    const void translateString(bool fromEncode, QString stringToTranslate);
+    const void translateFile(bool fromEncode);
 
     bool isPathValid() const;
     bool isJsonValid() const;

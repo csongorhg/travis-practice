@@ -38,7 +38,10 @@ int main(int argc, char* argv[])
         try
         {
             encoder->executeCommand();
-            qInfo() << encoder->getTranslatedString();
+            if (!encoder->getTranslatedString().isEmpty())
+            {
+                qInfo() << encoder->getTranslatedString();
+            }
         }
         catch(const std::exception& ex)
         {
