@@ -62,39 +62,38 @@ const void Encoder::executeCommand()
 {
     QString s = _command.split(" ")[0];
     if (s == "ENCODE") {
-        translateString(true);
+        translateString(true, _command.right(_command.size() - _command.indexOf(" ") - 1));
     } else if (s == "DECODE") {
-        translateString(false);
+        translateString(false, _command.right(_command.size() - _command.indexOf(" ") - 1));
     } else if (s == "ENCODE_FILE") {
- 
+        translateFile(true);
     } else if (s == "DECODE_FILE") {
-
+        translateFile(false);
     } else if (s == "EXIT") {
-
+        qInfo() << "KTHXBYE";
     }
 }
 
-const void Encoder::translateString(bool stringToEncode)
-{
-    QString textToTranslate = _command.right(_command.size() - _command.indexOf(" ") - 1).toLower();
-    
-    if (stringToEncode) // ENCODE
+const void Encoder::translateString(bool fromEncode, QString stringToTranslate)
+{   
+    stringToTranslate = stringToTranslate.toLower();
+    if (fromEncode) // ENCODE
     {
-        for (int i = 0; i < textToTranslate.length(); ++i)
+        for (int i = 0; i < stringToTranslate.length(); ++i)
         {
-            if (_dictionary.find(textToTranslate.at(i)) == _dictionary.end())
+            if (_dictionary.find(stringToTranslate.at(i)) == _dictionary.end())
             {
                 throw NonExistingPairException();
             }
-            _translatedString += QString(_dictionary[textToTranslate.at(i)]);
+            _translatedString += QString(_dictionary[stringToTranslate.at(i)]);
         }
     }
     else // DECODE
     {
         QString possibleValue = "";
-        for (int i = 0; i < textToTranslate.length(); ++i)
+        for (int i = 0; i < stringToTranslate.length(); ++i)
         {
-            possibleValue += QString(textToTranslate.at(i));
+            possibleValue += QString(stringToTranslate.at(i));
             QMapIterator<QChar, QString> d_it(_dictionary);
             while (d_it.hasNext())
             {
@@ -112,6 +111,32 @@ const void Encoder::translateString(bool stringToEncode)
             throw NonExistingPairException();
         }
     }
+}
+
+const void Encoder::translateFile(bool fromEncode)
+{
+    QString fromFilePath = _command.split(" ")[1];
+    QString toFilePath = _command.split(" ")[2];
+
+    if (!QFile::exists(fromFilePath))
+    {
+        throw InvalidPathException();
+    }
+
+    QFile fromFile(fromFilePath);
+    fromFile.open(QIODevice::ReadOnly|QIODevice::Text);
+    QByteArray data = fromFile.readAll();
+    fromFile.close();
+
+    translateString(fromEncode, QString(data));
+
+    QFile toFile(toFilePath);
+    toFile.open(QIODevice::WriteOnly);
+    QTextStream out(&toFile);
+    out << _translatedString;
+    toFile.close();
+
+    _translatedString.clear();
 }
 
 bool Encoder::isPathValid() const
