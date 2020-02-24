@@ -26,6 +26,8 @@ const void Encoder::setCommand(const QString command)
 
 const void Encoder::validatePath()
 {
+    qDebug() << QString(QDir::currentPath());
+    qDebug() << _path;
     _pathValid = QFile::exists(_path);
     if (!_pathValid) {
         throw InvalidPathException();
@@ -61,10 +63,11 @@ const void Encoder::parseJson()
 const void Encoder::executeCommand()
 {
     QString s = _command.split(" ")[0];
+    QString translated;
     if (s == "ENCODE") {
-        translateString(true, _command.right(_command.size() - _command.indexOf(" ") - 1));
+        setTranslatedString(translateString(true, _command.right(_command.size() - _command.indexOf(" ") - 1)));
     } else if (s == "DECODE") {
-        translateString(false, _command.right(_command.size() - _command.indexOf(" ") - 1));
+        setTranslatedString(translateString(false, _command.right(_command.size() - _command.indexOf(" ") - 1)));
     } else if (s == "ENCODE_FILE") {
         translateFile(true);
     } else if (s == "DECODE_FILE") {
@@ -74,9 +77,10 @@ const void Encoder::executeCommand()
     }
 }
 
-const void Encoder::translateString(bool fromEncode, QString stringToTranslate)
+const QString Encoder::translateString(bool fromEncode, QString stringToTranslate)
 {   
     stringToTranslate = stringToTranslate.toLower();
+    QString translatedString = "";
     if (fromEncode) // ENCODE
     {
         for (int i = 0; i < stringToTranslate.length(); ++i)
@@ -85,7 +89,7 @@ const void Encoder::translateString(bool fromEncode, QString stringToTranslate)
             {
                 throw NonExistingPairException();
             }
-            _translatedString += QString(_dictionary[stringToTranslate.at(i)]);
+            translatedString += QString(_dictionary[stringToTranslate.at(i)]);
         }
     }
     else // DECODE
@@ -100,7 +104,7 @@ const void Encoder::translateString(bool fromEncode, QString stringToTranslate)
                 d_it.next();
                 if (d_it.value() == possibleValue)
                 {
-                    _translatedString += QString(d_it.key());
+                    translatedString += QString(d_it.key());
                     possibleValue = "";
                     break;
                 }
@@ -111,6 +115,7 @@ const void Encoder::translateString(bool fromEncode, QString stringToTranslate)
             throw NonExistingPairException();
         }
     }
+    return translatedString;
 }
 
 const void Encoder::translateFile(bool fromEncode)
@@ -128,7 +133,7 @@ const void Encoder::translateFile(bool fromEncode)
     QByteArray data = fromFile.readAll();
     fromFile.close();
 
-    translateString(fromEncode, QString(data));
+    setTranslatedString(translateString(fromEncode, QString(data)));
 
     QFile toFile(toFilePath);
     toFile.open(QIODevice::WriteOnly);
@@ -137,6 +142,11 @@ const void Encoder::translateFile(bool fromEncode)
     toFile.close();
 
     _translatedString.clear();
+}
+
+const void Encoder::setTranslatedString(const QString translatedString)
+{
+    _translatedString = translatedString;
 }
 
 bool Encoder::isPathValid() const
